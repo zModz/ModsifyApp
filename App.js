@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
+  Alert,
 } from "react-native";
 import {
   NavigationContainer,
@@ -51,12 +52,13 @@ function HomeStack() {
   const [data, setData] = useState([]);
 
   const music = async () => {
-    const url = "https://shazam.p.rapidapi.com/charts/track?listId=ip-country-chart-PT";
+    const url =
+      "https://shazam.p.rapidapi.com/charts/track?listId=ip-country-chart-PT";
     const options = {
       method: "GET",
       headers: {
-        "X-RapidAPI-Key": process.env.EXPO_PUBLIC_XRapidAPIKey,,
-        "X-RapidAPI-Host": process.env.EXPO_PUBLIC_XRapidAPIHost,,
+        "X-RapidAPI-Key": process.env.EXPO_PUBLIC_XRapidAPIKey,
+        "X-RapidAPI-Host": process.env.EXPO_PUBLIC_XRapidAPIHost,
       },
     };
 
@@ -67,6 +69,7 @@ function HomeStack() {
       setData(result.tracks);
     } catch (error) {
       console.error(error);
+      alert(error);
     } finally {
       setLoading(false);
     }

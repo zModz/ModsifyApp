@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
-  Alert,
 } from "react-native";
 import {
   NavigationContainer,
@@ -67,10 +66,12 @@ function HomeStack() {
       const result = await response.json();
       // console.log(result);
       setData(result.tracks);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error(error);
       alert(error);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   };

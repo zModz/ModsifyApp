@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
+  Button,
 } from "react-native";
 import {
   NavigationContainer,
@@ -19,75 +20,80 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
+import store from "./src/app/store";
+import { Provider } from "react-redux";
+
+import { playPause, setActiveSong } from "./src/app/playerSlice";
+import { useGetChartsQuery } from "./ShazamCore";
+import { useDispatch, useSelector } from "react-redux";
+import Player from "./src/app/Player";
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const ThemeContext = React.createContext();
 
-const Song = ({ song, color }) => (
-  <View
-    style={{
-      height: 100,
-      backgroundColor: color.card,
-      margin: 5,
-      flexDirection: "row",
-      borderLeftWidth: 5,
-      borderLeftColor: color.primary,
-    }}
-  >
-    <Image source={{ uri: song.images.coverart }} width={100} height={100} />
-    <View style={{ flexShrink: 1, margin: 5, justifyContent: "center" }}>
-      <Text style={{ color: color.text }}>{song.title}</Text>
-      <Text style={{ color: color.text, fontWeight: 200 }}>
-        {song.subtitle}
-      </Text>
-    </View>
-  </View>
-);
+function Song({ song, color, isPlaying, activeSong, i, data }) {
+  const dispatch = useDispatch();
+  let currentlyPlaying = ''
+  
+  const handlePlayClick = () => {
+    dispatch(setActiveSong({song, data, i}))
+    dispatch(playPause(true))
+  }
+  
+  const handlePauseClick = () => {
+    dispatch(playPause(false))
+  }
+
+  activeSong?.title === song?.title ? currentlyPlaying = 'yellow' : currentlyPlaying = color.primary
+
+  return (
+    <TouchableOpacity
+      style={{
+        height: 100,
+        backgroundColor: color.card,
+        margin: 5,
+        flexDirection: "row",
+        borderLeftWidth: 5,
+        borderLeftColor: currentlyPlaying,
+      }}
+      onPress={() => handlePlayClick()}
+    >
+      <Image source={{ uri: song.images?.coverart }} width={100} height={100} />
+      <View style={{ flexShrink: 1, margin: 5, justifyContent: "center" }}>
+        <Text style={{ color: color.text }}>{song.title}</Text>
+        <Text style={{ color: color.text, fontWeight: 200 }}>
+          {song.subtitle}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
+}
 
 function HomeStack() {
   const colors = useTheme().colors;
+  const dispatch = useDispatch();
+  const { activeSong, isPlaying } = useSelector((state) => state.player);
 
-  const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
+  const { data, isFetching, error } = useGetChartsQuery();
 
-  const music = async () => {
-    const url =
-      "https://shazam.p.rapidapi.com/charts/track?listId=ip-country-chart-PT";
-    const options = {
-      method: "GET",
-      headers: {
-        "X-RapidAPI-Key": process.env.EXPO_PUBLIC_XRapidAPIKey,
-        "X-RapidAPI-Host": process.env.EXPO_PUBLIC_XRapidAPIHost,
-      },
-    };
-
-    try {
-      const response = await fetch(url, options);
-      const result = await response.json();
-      // console.log(result);
-      setData(result.tracks);
-    } 
-    catch (error) {
-      console.error(error);
-      alert(error);
-    } 
-    finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    music();
-  }, []);
+  if (error) return alert(error);
 
   return (
     <View>
-      {isLoading ? (
+      {isFetching ? (
         <ActivityIndicator />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-          {data?.map((song) => (
-            <Song key={song.key} song={song} color={colors} />
+          {data.tracks?.map((song, i) => (
+            <Song 
+            key={song.key}
+            song={song}
+            color={colors}
+            isPlaying={isPlaying}
+            activeSong={activeSong}
+            data={data}
+            i={i}  />
           ))}
         </ScrollView>
       )}
@@ -172,6 +178,7 @@ function Settings() {
 
 function NowPlaying({ color, size }) {
   const colors = useTheme().colors;
+  const { activeSong, isPlaying } = useSelector((state) => state.player);
 
   return (
     <View
@@ -289,23 +296,27 @@ export default function App() {
   const themeData = { theme, setTheme };
 
   return (
-    <ThemeContext.Provider value={themeData}>
-      <NavigationContainer theme={theme === "Dark" ? DarkTheme : DefaultTheme}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="main"
-            component={TabNavigation}
-            options={{ headerShown: false }}
-          />
-          <Stack.Group screenOptions={{ presentation: "modal" }}>
+    <Provider store={store}>
+      <ThemeContext.Provider value={themeData}>
+        <NavigationContainer
+          theme={theme === "Dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack.Navigator>
             <Stack.Screen
-              name="player"
-              component={NowPlayingScreen}
+              name="main"
+              component={TabNavigation}
               options={{ headerShown: false }}
             />
-          </Stack.Group>
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ThemeContext.Provider>
+            <Stack.Group screenOptions={{ presentation: "modal" }}>
+              <Stack.Screen
+                name="player"
+                component={NowPlayingScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ThemeContext.Provider>
+    </Provider>
   );
 }

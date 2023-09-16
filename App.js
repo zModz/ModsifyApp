@@ -1,5 +1,5 @@
 import "react-native-gesture-handler";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Component, createContext } from "react";
 import {
   Text,
   View,
@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
-  Button,
+  RefreshControl,
+  Dimensions,
 } from "react-native";
 import {
   NavigationContainer,
@@ -27,6 +28,10 @@ import { playPause, setActiveSong } from "./src/app/playerSlice";
 import { useGetChartsQuery } from "./ShazamCore";
 import { useDispatch, useSelector } from "react-redux";
 import Player from "./src/app/Player";
+import AudioProvider, { AudioContext } from "./AudioProvider";
+import { LayoutProvider, RecyclerListView } from 'recyclerlistview'
+
+import * as MediaLibrary from 'expo-media-library'
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -79,12 +84,23 @@ function HomeStack() {
 
   if (error) return alert(error);
 
+  const refreshControl = () => {
+    if(!isFetching){
+      return;
+    }
+  }
+
   return (
     <View>
       {isFetching ? (
         <ActivityIndicator />
       ) : (
-        <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+        <ScrollView 
+          contentContainerStyle={{ paddingBottom: 80 }}
+          refreshControl={
+            <RefreshControl refreshing={isFetching} onRefresh={refreshControl}/>
+          }
+        >
           {data.tracks?.map((song, i) => (
             <Song 
             key={song.key}
@@ -113,16 +129,93 @@ function Search() {
   );
 }
 
-function Library() {
+function SecondsToHms(d) {
+  d = Number(d);
+  var m = Math.floor(d % 3600 / 60);
+  var s = Math.floor(d % 3600 % 60);
+
+  if(m < 10 && s < 10)
+    return `0${m}:0${s}`
+  
+  
+  if(m < 10)
+    return `0${m}:${s}`
+
+    
+  if(s < 10)
+    return `${m}:0${s}`
+}
+
+function File({song, i}) {
   const colors = useTheme().colors;
 
   return (
-    <View>
-      <Text style={{ fontSize: 20, color: colors.text }}>
-        This is the Library screen
-      </Text>
-    </View>
-  );
+    <>
+      <TouchableOpacity
+        style={{
+          height: 100,
+          backgroundColor: colors.card,
+          margin: 5,
+          flexDirection: "row",
+          borderLeftWidth: 5,
+          borderColor: colors.primary,
+        }}
+      >
+        <Image source={{ uri: "https://i.imgur.com/UIoEWrj.jpeg" }} width={100} height={100} />
+        <View style={{ flexShrink: 1, margin: 5, justifyContent: "center" }}>
+          <Text style={{ color: colors.text }}>{song.filename}</Text>
+          <Text style={{ color: colors.text, fontWeight: 200 }}>
+            {SecondsToHms(song.duration)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      {/* <View style={{height: 10, backgroundColor: colors.background, alignSelf: 'center'}} /> */}
+    </>
+  )
+}
+
+class LibraryList extends Component {
+  static contextType = AudioContext
+
+  layoutProvider = new LayoutProvider(i => 'audio', (type, dim) => {
+    switch (type) {
+      case 'audio':
+        dim.width = Dimensions.get('window').width;
+        dim.height = 110;
+        break;
+      default:
+        dim.width = 0;
+        dim.height = 0;
+        break;
+    }
+  })
+
+  rowRenderer = (type, item) => {
+    // {"albumId": "1534994081", "creationTime": 0, "duration": 242.756, "filename": "Anthem Of The Angels.mp3", "height": 0, "id": "330", "mediaType": "audio", "modificationTime": 1561448312000, "uri": "file:///storage/6027-DCFD/Music/2009 - Dear Agony/Anthem Of The Angels.mp3", "width": 0}
+    return (
+      <File key={item.id} song={item} />
+    )
+  }
+
+  render(){
+    return (
+      <AudioContext.Consumer>
+        {({dataProvider}) => {
+          return(
+            <View style={{flex: 1, paddingBottom: 80}}>
+              <RecyclerListView dataProvider={dataProvider} layoutProvider={this.layoutProvider} rowRenderer={this.rowRenderer} />
+            </View>
+          )
+        }}
+      </AudioContext.Consumer>
+    )
+  }
+}
+
+function Library() {
+  return(
+    <LibraryList />
+  )
 }
 
 function Settings() {
@@ -297,26 +390,28 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <ThemeContext.Provider value={themeData}>
-        <NavigationContainer
-          theme={theme === "Dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack.Navigator>
-            <Stack.Screen
-              name="main"
-              component={TabNavigation}
-              options={{ headerShown: false }}
-            />
-            <Stack.Group screenOptions={{ presentation: "modal" }}>
+      <AudioProvider>
+        <ThemeContext.Provider value={themeData}>
+          <NavigationContainer
+            theme={theme === "Dark" ? DarkTheme : DefaultTheme}
+          >
+            <Stack.Navigator>
               <Stack.Screen
-                name="player"
-                component={NowPlayingScreen}
+                name="main"
+                component={TabNavigation}
                 options={{ headerShown: false }}
               />
-            </Stack.Group>
-          </Stack.Navigator>
-        </NavigationContainer>
-      </ThemeContext.Provider>
+              <Stack.Group screenOptions={{ presentation: "modal" }}>
+                <Stack.Screen
+                  name="player"
+                  component={NowPlayingScreen}
+                  options={{ headerShown: false }}
+                />
+              </Stack.Group>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ThemeContext.Provider>
+      </AudioProvider>
     </Provider>
   );
 }

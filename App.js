@@ -19,30 +19,53 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
+import { fetchFromSubsonic } from "./helpers/subsonic";
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const ThemeContext = React.createContext();
 
-const Song = ({ song, color }) => (
-  <View
-    style={{
-      height: 100,
-      backgroundColor: color.card,
-      margin: 5,
-      flexDirection: "row",
-      borderLeftWidth: 5,
-      borderLeftColor: color.primary,
-    }}
-  >
-    <Image source={{ uri: song.images.coverart }} width={100} height={100} />
-    <View style={{ flexShrink: 1, margin: 5, justifyContent: "center" }}>
-      <Text style={{ color: color.text }}>{song.title}</Text>
-      <Text style={{ color: color.text, fontWeight: 200 }}>
-        {song.subtitle}
-      </Text>
+function Song({ song, color }) {
+  const [coverArt, setCoverArt] = useState("https://i.imgur.com/UIoEWrj.jpeg"); // Default cover art
+
+  const getcoverArt = async () => {
+    try {
+      const data = await fetchFromSubsonic("getAlbumInfo2", `id=${song.id}`);
+      return data?.["subsonic-response"]?.albumInfo?.smallImageUrl;
+    } catch (error) {
+      console.error("Error fetching cover art:", error);
+      return "https://i.imgur.com/UIoEWrj.jpeg"; // Fallback cover art
+    }
+  };
+
+  useEffect(() => {
+    getcoverArt().then((uri) => {
+      setCoverArt(uri);
+    });
+  }, []);
+
+  return (
+    <View
+      style={{
+        height: 100,
+        backgroundColor: color.card,
+        margin: 5,
+        flexDirection: "row",
+        borderLeftWidth: 5,
+        borderLeftColor: color.primary,
+      }}
+    >
+      <Image source={{ uri: coverArt }} width={100} height={100} />
+      <View style={{ flexShrink: 1, margin: 5, justifyContent: "center" }}>
+        <Text style={{ color: color.text }}>{song.name}</Text>
+        <Text style={{ color: color.text, fontWeight: 200 }}>
+          {song.artist}
+        </Text>
+        <Text style={{ color: color.text, fontWeight: 200 }}>{song.year}</Text>
+      </View>
     </View>
-  </View>
-);
+  );
+}
 
 function HomeStack() {
   const colors = useTheme().colors;
@@ -51,27 +74,16 @@ function HomeStack() {
   const [data, setData] = useState([]);
 
   const music = async () => {
-    const url =
-      "https://shazam.p.rapidapi.com/charts/track?listId=ip-country-chart-PT";
-    const options = {
-      method: "GET",
-      headers: {
-        "X-RapidAPI-Key": process.env.EXPO_PUBLIC_XRapidAPIKey,
-        "X-RapidAPI-Host": process.env.EXPO_PUBLIC_XRapidAPIHost,
-      },
-    };
-
     try {
-      const response = await fetch(url, options);
-      const result = await response.json();
-      // console.log(result);
-      setData(result.tracks);
-    } 
-    catch (error) {
+      const response = await fetchFromSubsonic(
+        "getAlbumList2",
+        "type=alphabeticalByName"
+      );
+      setData(response?.["subsonic-response"].albumList2 || []);
+    } catch (error) {
       console.error(error);
       alert(error);
-    } 
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -86,8 +98,8 @@ function HomeStack() {
         <ActivityIndicator />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-          {data?.map((song) => (
-            <Song key={song.key} song={song} color={colors} />
+          {data?.album.map((song) => (
+            <Song key={song.id} song={song} color={colors} />
           ))}
         </ScrollView>
       )}

@@ -1,9 +1,14 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useTheme } from "@react-navigation/native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-import { NowPlaying } from "./nowPlayingComp";
+import NowPlaying from "./nowPlayingComp";
 
-import { HomeStack } from "../screens/Home";
+import HomeStack from "../screens/Home";
+import Search from "../screens/Search";
+import Library from "../screens/Library";
+import Settings from "../screens/Settings";
+import Player from "../screens/Player";
 
 const Tab = createBottomTabNavigator();
 
@@ -48,7 +53,7 @@ const TabNavigation = () => {
       <Tab.Group screenOptions={{ presentation: "modal" }}>
         <Tab.Screen
           name="Playing"
-          component={Search}
+          component={Player}
           options={{
             tabBarShowLabel: false,
             tabBarIcon: ({ color, size }) => (

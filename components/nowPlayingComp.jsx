@@ -1,6 +1,8 @@
-import { View, Image } from "react-native";
+import { View, Text, Image } from "react-native";
+import { useTheme } from "@react-navigation/native";
+import React from "react";
 
-export default function NowPlaying({ color, size }) {
+export default function NowPlaying(color, size) {
   const colors = useTheme().colors;
 
   return (

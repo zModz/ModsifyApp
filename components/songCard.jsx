@@ -1,9 +1,9 @@
 import "react-native-gesture-handler";
 import React, { useEffect, useState } from "react";
 import { Text, View, Image } from "react-native";
-import { fetchFromSubsonic } from "./helpers/subsonic";
+import { fetchFromSubsonic } from "../helpers/subsonic";
 
-export default function Song({ song, color }) {
+const Song = ({ song, color }) => {
   const [coverArt, setCoverArt] = useState("https://i.imgur.com/UIoEWrj.jpeg"); // Default cover art
 
   const getcoverArt = async () => {
@@ -43,4 +43,6 @@ export default function Song({ song, color }) {
       </View>
     </View>
   );
-}
+};
+
+export default Song;

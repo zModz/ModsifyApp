@@ -20,41 +20,10 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import { fetchFromSubsonic } from "./helpers/subsonic";
 import TabNavigation from "./components/tabComponent";
+import Player from "./screens/Player";
 
 const Stack = createStackNavigator();
 const ThemeContext = React.createContext();
-
-function Search() {
-  const colors = useTheme().colors;
-
-  return (
-    <View>
-      <Text style={{ fontSize: 20, color: colors.text }}>
-        This is the Search screen
-      </Text>
-    </View>
-  );
-}
-
-function Library() {
-  const colors = useTheme().colors;
-
-  return (
-    <View>
-      <Text style={{ fontSize: 20, color: colors.text }}>
-        This is the Library screen
-      </Text>
-    </View>
-  );
-}
-
-function NowPlayingScreen() {
-  return (
-    <View style={{ paddingTop: StatusBar.currentHeight }}>
-      <Text style={{ fontSize: 20 }}>This is the NowPlaying screen</Text>
-    </View>
-  );
-}
 
 export default function App() {
   const [theme, setTheme] = useState("Light");
@@ -72,7 +41,7 @@ export default function App() {
           <Stack.Group screenOptions={{ presentation: "modal" }}>
             <Stack.Screen
               name="player"
-              component={NowPlayingScreen}
+              component={Player}
               options={{ headerShown: false }}
             />
           </Stack.Group>

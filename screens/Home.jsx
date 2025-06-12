@@ -3,6 +3,7 @@ import { View, ScrollView, ActivityIndicator } from "react-native";
 import { useTheme } from "@react-navigation/native";
 
 import { fetchFromSubsonic } from "../helpers/subsonic";
+import Song from "../components/songCard";
 
 const HomeStack = () => {
   const colors = useTheme().colors;

@@ -1,4 +1,5 @@
 import { BASE_URL, API_VERSION, CLIENT_NAME, USERS } from "../config";
+console.log(BASE_URL);
 
 const getAuthParams = (userKey = "nonadmin") => {
   const user = USERS[userKey];

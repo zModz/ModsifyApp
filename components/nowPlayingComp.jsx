@@ -1,9 +1,11 @@
 import { View, Text, Image } from "react-native";
 import { useTheme } from "@react-navigation/native";
-import React from "react";
+import React, { useContext } from "react";
+import { PlayerContext } from "../context/playerContext";
 
 export default function NowPlaying(color, size) {
   const colors = useTheme().colors;
+  const { currentTrack, isPlaying } = useContext(PlayerContext);
 
   return (
     <View
@@ -18,7 +20,7 @@ export default function NowPlaying(color, size) {
       }}
     >
       <Image
-        source={{ uri: "https://i.imgur.com/UIoEWrj.jpeg" }}
+        source={{ uri: currentTrack?.albumCover }}
         style={{ width: 50, height: 50, borderRadius: 50 }}
       />
     </View>

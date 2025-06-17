@@ -17,6 +17,7 @@ const HomeStack = () => {
         "getAlbumList2",
         "type=alphabeticalByName"
       );
+
       setData(response?.["subsonic-response"].albumList2 || []);
     } catch (error) {
       console.error(error);
@@ -36,7 +37,7 @@ const HomeStack = () => {
         <ActivityIndicator />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-          {data?.album.map((song) => (
+          {data?.album?.map((song) => (
             <Song key={song.id} song={song} color={colors} />
           ))}
         </ScrollView>

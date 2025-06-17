@@ -21,6 +21,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { fetchFromSubsonic } from "./helpers/subsonic";
 import TabNavigation from "./components/tabComponent";
 import Player from "./screens/Player";
+import { PlayerProvider } from "./context/playerContext";
 
 const Stack = createStackNavigator();
 const ThemeContext = React.createContext();
@@ -31,22 +32,26 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={themeData}>
-      <NavigationContainer theme={theme === "Dark" ? DarkTheme : DefaultTheme}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="main"
-            component={TabNavigation}
-            options={{ headerShown: false }}
-          />
-          <Stack.Group screenOptions={{ presentation: "modal" }}>
+      <PlayerProvider>
+        <NavigationContainer
+          theme={theme === "Dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack.Navigator>
             <Stack.Screen
-              name="player"
-              component={Player}
+              name="main"
+              component={TabNavigation}
               options={{ headerShown: false }}
             />
-          </Stack.Group>
-        </Stack.Navigator>
-      </NavigationContainer>
+            <Stack.Group screenOptions={{ presentation: "modal" }}>
+              <Stack.Screen
+                name="player"
+                component={Player}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </PlayerProvider>
     </ThemeContext.Provider>
   );
 }

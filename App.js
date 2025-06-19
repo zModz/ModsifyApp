@@ -1,24 +1,12 @@
 import "react-native-gesture-handler";
-import React, { useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  StatusBar,
-  ScrollView,
-} from "react-native";
+import React, { useState } from "react";
+
 import {
   NavigationContainer,
   DarkTheme,
   DefaultTheme,
-  useTheme,
 } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-
-import { fetchFromSubsonic } from "./helpers/subsonic";
 import TabNavigation from "./components/tabComponent";
 import Player from "./screens/Player";
 import { PlayerProvider } from "./context/playerContext";
@@ -42,7 +30,7 @@ export default function App() {
               component={TabNavigation}
               options={{ headerShown: false }}
             />
-            <Stack.Group screenOptions={{ presentation: "modal" }}>
+            <Stack.Group screenOptions={{ presentation: "transparentModal" }}>
               <Stack.Screen
                 name="player"
                 component={Player}

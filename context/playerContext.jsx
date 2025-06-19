@@ -1,5 +1,6 @@
 import React, { createContext, useState, useRef, useEffect } from "react";
 import { Audio } from "expo-av";
+import scrobbleTrack from "../helpers/scrobbleTrack";
 
 export const PlayerContext = createContext();
 
@@ -25,6 +26,8 @@ export const PlayerProvider = ({ children }) => {
       setPlaylist(trackList);
       setCurrentIndex(index);
       setIsPlaying(true);
+
+      scrobbleTrack(trackList[index].id);
 
       sound.setOnPlaybackStatusUpdate(async (status) => {
         if (status.didJustFinish) {
